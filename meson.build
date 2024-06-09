@@ -17,8 +17,8 @@ cppgir = find_program('cppgir')
 bpc = find_program('blueprint-compiler', required: false)
 if not bpc.found()
     subproject('blueprint-compiler')
+    bpc = find_program('blueprint-compiler')
 endif
-bpc = find_program('blueprint-compiler')
 
 fs = import('fs')
 blp_files = ['cppgir-gtk.blp']
