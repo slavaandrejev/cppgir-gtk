@@ -1,0 +1,19 @@
+using Gtk 4.0;
+
+ApplicationWindow main-window {
+    title: "GTK4 Example";
+    default-width: 640;
+    default-height: 480;
+    Box welcome {
+        orientation: vertical;
+        valign: center;
+        halign: center;
+
+        Label label {
+            label: _("Welcome to GTK4 with cppgir C++ bindings");
+            styles [
+                "title-1"
+            ]
+        }
+    }
+}

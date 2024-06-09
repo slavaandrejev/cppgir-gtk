@@ -1,0 +1,6 @@
+// AUTO-GENERATED
+
+#ifndef _GI_FREETYPE2__ENUMS_HPP_
+#define _GI_FREETYPE2__ENUMS_HPP_
+
+#endif

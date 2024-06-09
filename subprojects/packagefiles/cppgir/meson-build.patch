@@ -1,0 +1,109 @@
+diff --git a/data/meson.build b/data/meson.build
+new file mode 100644
+index 0000000..8612371
+--- /dev/null
++++ b/data/meson.build
+@@ -0,0 +1,8 @@
++ignore_file = configure_file(
++    input:  'cppgir.ignore'
++  , output: 'cppgir.ignore'
++  , copy:   true)
++ignore_platform_file = configure_file(
++    input:  'cppgir_unix.ignore'
++  , output: 'cppgir_unix.ignore'
++  , copy:   true)
+diff --git a/meson.build b/meson.build
+new file mode 100644
+index 0000000..6b79c93
+--- /dev/null
++++ b/meson.build
+@@ -0,0 +1,41 @@
++project(
++    'cppgir'
++  , ['cpp']
++  , version : '2.0.0'
++  , default_options: {
++        'cpp_std': 'c++17'
++      }
++  )
++
++compiler = meson.get_compiler('cpp')
++
++expected_code = '''#include <expected>
++auto f() -> std::expected<int, int> { return 2; }
++'''
++has_expected = compiler.compiles(expected_code, name: 'std::expected check')
++
++pkgconfig = import('pkgconfig')
++
++pkgconfig.generate(
++    name: 'cppgir'
++  , version: '0.1.0'
++  , subdirs: ['cppgir', 'cppgir' / 'gi', 'cppgir' / 'override']
++  , description: 'GObject Introspection C++ wrapper generator.')
++
++install_subdir('gi', install_dir: 'include' / 'cppgir')
++install_subdir('override', install_dir: 'include' / 'cppgir')
++
++inc = include_directories('.', 'gi', 'override')
++if not has_expected
++    # Add an include option and copy the directory is all we have to do. cppgir
++    # will automatically switch to `nonstd/expected.hpp` if it exists.
++    inc = [inc] + include_directories('expected-lite' / 'include')
++    install_subdir('expected-lite' / 'include' / 'nonstd', install_dir: 'include' / 'cppgir')
++endif
++
++cppgir_dep = declare_dependency(include_directories: inc)
++
++meson.override_dependency('cppgir', cppgir_dep)
++
++subdir('data')
++subdir('tools')
+diff --git a/subprojects/fmt.wrap b/subprojects/fmt.wrap
+new file mode 100644
+index 0000000..3839690
+--- /dev/null
++++ b/subprojects/fmt.wrap
+@@ -0,0 +1,13 @@
++[wrap-file]
++directory = fmt-10.2.0
++source_url = https://github.com/fmtlib/fmt/archive/10.2.0.tar.gz
++source_filename = fmt-10.2.0.tar.gz
++source_hash = 3ca91733a7313a8ad41c0885929415f8ec0a2a31d4dc7e27e9331412f4ca26ac
++patch_filename = fmt_10.2.0-1_patch.zip
++patch_url = https://wrapdb.mesonbuild.com/v2/fmt_10.2.0-1/get_patch
++patch_hash = aa93abb8f20cb8f739d794846c69264d57fa339e8ee78a78894f8ef2348c8080
++source_fallback_url = https://github.com/mesonbuild/wrapdb/releases/download/fmt_10.2.0-1/fmt-10.2.0.tar.gz
++wrapdb_version = 10.2.0-1
++
++[provide]
++fmt = fmt_dep
+diff --git a/tools/meson.build b/tools/meson.build
+new file mode 100644
+index 0000000..055ec06
+--- /dev/null
++++ b/tools/meson.build
+@@ -0,0 +1,23 @@
++boost_dep = dependency('boost', version: '>= 1.58')
++fmt_dep   = dependency('fmt')
++
++message(get_option('datadir'))
++
++cppgir_exe = executable(
++    'cppgir'
++  , 'cppgir.cpp'
++  , 'function.cpp'
++  , 'genbase.cpp'
++  , 'genns.cpp'
++  , 'genutils.cpp'
++  , 'repository.cpp'
++  , cpp_args: [
++        '-DDEFAULT_IGNORE_FILE=@0@:@1@'.format(ignore_file, ignore_platform_file)
++      ]
++  , dependencies: [
++        boost_dep
++      , fmt_dep
++      ]
++  )
++
++meson.override_find_program('cppgir', cppgir_exe)

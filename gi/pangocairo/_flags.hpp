@@ -1,0 +1,6 @@
+// AUTO-GENERATED
+
+#ifndef _GI_PANGOCAIRO__FLAGS_HPP_
+#define _GI_PANGOCAIRO__FLAGS_HPP_
+
+#endif

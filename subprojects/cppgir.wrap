@@ -1,0 +1,6 @@
+[wrap-git]
+url = https://gitlab.com/mnauw/cppgir.git
+revision = 983fc13535d62ed6d646d2bc26730e931648196a
+clone-recursive = true
+depth = 1
+diff_files = cppgir/meson-build.patch
