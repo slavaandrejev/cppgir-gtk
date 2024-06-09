@@ -3,21 +3,7 @@ gthread_dep   = dependency('gthread-2.0')
 gtk_dep       = dependency('gtk4')
 gtk_print_dep = dependency('gtk4-unix-print')
 
-# gtk_required_bindings = []
-# cpp_bindings = custom_target(
-#     'gtk_bindings'
-#   , output: [
-#         'gi'
-#       ]
-#   , command: [
-#         cppgir
-#       , '--output', 'gi'
-#       , '--class'
-#       , 'Gtk-4.0'
-#       ]
-#   )
-
-required_bindings = [
+gtk_binding_names = [
     'cairo'
   , 'freetype2'
   , 'gdk'
@@ -33,18 +19,46 @@ required_bindings = [
   , 'pango'
   , 'pangocairo'
   ]
-cppgir_src = []
-foreach b : required_bindings
-    # cppgir_src += files(meson.current_build_dir() / b / f'@b@.cpp')
-    cppgir_src += files(b / f'@b@.cpp')
+
+gen_bindings = custom_target(
+    output: gtk_binding_names
+  , command: [
+        cppgir
+      , '--output', '@OUTDIR@'
+      , '--class'
+      , 'Gtk-4.0'
+      ]
+  )
+touch = find_program('touch')
+gen_bindings_dummy_h = custom_target(
+    output: 'gen_bindings_dummy.h'
+  , command: [touch, '@OUTPUT@']
+  , input: gen_bindings
+  )
+
+binding_src = []
+binding_inc = []
+foreach b : gtk_binding_names
+    run_command('mkdir', meson.current_build_dir() / b, check: false)
+    binding_src += custom_target(
+        input: gen_bindings_dummy_h
+      , output: f'@b@.cpp'
+      , command: [
+            'cp'
+          , '@OUTDIR@' / b / f'@b@.cpp'
+          , '@OUTDIR@' / f'@b@.cpp'
+          ]
+      )
+    binding_inc += include_directories(b)
 endforeach
 
 gigtkmm_lib = library(
     'gigtkmm'
-#   , cpp_bindings
-  , cppgir_src
-  , include_directories: gi_inc
-  , implicit_include_directories: false
+  , binding_src
+  , gen_bindings_dummy_h
+  , include_directories: [
+        binding_inc
+      ]
   , dependencies: [
         cppgir_dep
       , gio_unix_dep
@@ -52,10 +66,10 @@ gigtkmm_lib = library(
       , gtk_dep
       , gtk_print_dep
       ]
-)
+  )
 
 gigtkmm_dep = declare_dependency(
-    include_directories: gi_inc
+    sources: gen_bindings_dummy_h
   , link_with: gigtkmm_lib
   , dependencies: [
         cppgir_dep
@@ -64,4 +78,4 @@ gigtkmm_dep = declare_dependency(
       , gtk_dep
       , gtk_print_dep
       ]
-)
+  )

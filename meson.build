@@ -4,8 +4,6 @@ project(
   , version : '0.1'
   , default_options: ['cpp_std=gnu++23'])
 
-gi_inc = include_directories('gi')
-
 if get_option('buildtype') == ('debug')
     add_project_arguments('-DDEBUG', language: ['c', 'cpp'])
 endif

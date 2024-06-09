@@ -1,6 +1,0 @@
-// AUTO-GENERATED
-
-#ifndef _GI_GRAPHENE__FLAGS_HPP_
-#define _GI_GRAPHENE__FLAGS_HPP_
-
-#endif
